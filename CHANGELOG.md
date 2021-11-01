@@ -1,3 +1,8 @@
+### 3.3orca
+ - Modified Dockerfile to utilize multi-staging; reduced final image size from ~900MB to ~158MB
+ - Added bash_alias that provides a function to process and pass arguments to docker run
+ - Added docker-build.sh to automate build and cleanup
+
 ### 3.3
  - Fixed missing output messages for Invoke-Binary
  - Extracted AMSI bypass from menu to avoid menu problems due to M$ AV signatures
