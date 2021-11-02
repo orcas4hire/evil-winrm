@@ -1,24 +1,33 @@
+#This file contains custom aliases
+
+# DOCKER CONTAINER ALIASES
+
 # Alias that starts a new docker container to run evil-winrm
 function evil-winrm () {
   # unset variables
-  unset args vol_ps1_scripts vol_exe_files
+  unset vol_ps1_scripts vol_exe_files
+  args=()
   
   # iterate through each argument looking for flags to indicate script, data, executable folders
   # set variables for the volumes, and produce a stripped arguments list
-  for (( i=1; i <= $#; i++ )); do
-    #printf "$@[$i]\n"
-    if [ "$@[$i]" = "-s" ] || [ "$@[$i]" = "--scripts" ]; then
-      ((i++))
-      mkdir -p $@[$i]
-      vol_ps1_scripts="--mount type=bind,source=$@[$i],target=/ps1_scripts,readonly"
-    elif [ "$@[$i]" = "-e" ] || [ "$@[$i]" = "--executables" ]; then
-      ((i++))
-      mkdir -p $@[$i]
-      vol_exe_files="--mount type=bind,source=$@[$i],target=/exe_files,readonly"
-    else
-      args+=("$@[$i]")
-    fi
+  while [[ $# -gt 0 ]]; do
+    arg="$1"
+    case $arg in
+      -s|--scripts)
+        vol_ps1_scripts="--mount type=bind,source=$2,target=/ps1_scripts,readonly"
+        mkdir -p "$2"
+        shift; shift
+        ;;
+      -e|--executables)
+        vol_exe_files="--mount type=bind,source=$2,target=/exe_files,readonly"
+        mkdir -p "$2"
+        shift; shift
+        ;;
+      *) args+=("$arg")
+        shift
+        ;;
+    esac
   done
-
-  docker run --rm -ti --network host --name evil-winrm $(echo "$vol_ps1_scripts" | xargs) $(echo "$vol_exe_files" | xargs) --mount type=bind,source="$(pwd)",target=/data evil-winrm $args -s '/ps1_scripts/' -e '/exe_files/'
+  
+  docker run --rm -ti --network host --name evil-winrm $(echo "$vol_ps1_scripts" | xargs) $(echo "$vol_exe_files" | xargs) --mount type=bind,source="$(pwd)",target=/data evil-winrm ${args[@]} -s '/ps1_scripts/' -e '/exe_files/'
 }
